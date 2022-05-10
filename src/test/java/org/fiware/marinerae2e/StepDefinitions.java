@@ -76,6 +76,8 @@ public class StepDefinitions {
 
 		Request subscriptionCreationRequest = new Request.Builder()
 				.url(String.format("%s/v2/subscriptions", brokerUrl))
+				.addHeader("Fiware-Service", "AirQuality")
+				.addHeader("Fiware-ServicePath", "/alcantarilla")
 				.method("POST", subscriptionBody)
 				.build();
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
@@ -107,6 +109,8 @@ public class StepDefinitions {
 			RequestBody entityBody = RequestBody.create(getTestEntity("test-air-quality", 10.0, 12.2, 0.5, 0.9, formatter.format(historicalNow)), MediaType.get("application/json"));
 			Request entityCreationRequest = new Request.Builder()
 					.url(orionUrl)
+					.addHeader("Fiware-Service", "AirQuality")
+					.addHeader("Fiware-ServicePath", "/alcantarilla")
 					.method("POST", entityBody)
 					.build();
 			Response response = brokerClient.newCall(entityCreationRequest).execute();
