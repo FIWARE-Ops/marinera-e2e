@@ -214,7 +214,7 @@ public class StepDefinitions {
 	 * - if one of the cleanup steps fails, the other will still run, but the test will be marked as a failure
 	 */
 	@After
-	public void cleanUp() {
+	public void cleanUp() throws MalformedURLException {
 		Optional<Response> subDeletionResponse = Optional.empty();
 		Optional<Response> qlDeletionResponse = Optional.empty();
 		Optional<Response> entityDeletionResponse = Optional.empty();
@@ -232,9 +232,23 @@ public class StepDefinitions {
 		} catch (Exception e) {
 		}
 
+		URL ql = new URL(quantumLeapUrl);
+
+		HttpUrl qlUrl = new HttpUrl.Builder()
+				.host(ql.getHost())
+				.port(ql.getPort())
+				.scheme(ql.getProtocol())
+				.addPathSegment("v2")
+				.addPathSegment("entities")
+				.addPathSegment(testEntityId)
+				.addEncodedQueryParameter("type", "AirQualityObserved")
+				.build();
+
 		// remove all the data from quantum leap
 		Request qlDeletion = new Request.Builder()
-				.url(String.format("%s/v2/entities/%s", quantumLeapUrl, testEntityId))
+				.url(qlUrl)
+				// notifications are sent to the default path - needs to be checked
+				.addHeader("Fiware-ServicePath", "/")
 				.method("DELETE", null)
 				.build();
 		try {
