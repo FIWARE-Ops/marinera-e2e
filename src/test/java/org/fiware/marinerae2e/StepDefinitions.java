@@ -189,11 +189,12 @@ public class StepDefinitions {
 	}
 
 	@Then("The current air-quality data should be visible.")
-	public void verfiy_current_data_is_visible() {
+	public void verify_current_data_is_visible() {
 
-		WebElement currentDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", currentDataGridPosition)));
-		List<WebElement> elementListByEntityName = currentDataTable.findElements(By.xpath(String.format("//*[contains(text(), '%s')]", testEntityId)));
-		assertEquals(1, elementListByEntityName.size(), "The entity should be there exactly once.");
+		List<WebElement> tableRowElements = webDriver.findElements(By.cssSelector(String.format(".table-panel-table > tbody:nth-child(%s) > tr:nth-child(1)", currentDataGridPosition)));
+		assertEquals(1, tableRowElements.size(), "The entity should be there exactly once.");
+		assertEquals(testEntityId, tableRowElements.get(0).findElements(By.tagName("td")).get(0).getText(), "The entry should be the test entity.");
+
 	}
 
 	@Then("The air-quality data history should be visible.")
