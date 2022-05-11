@@ -236,8 +236,6 @@ public class StepDefinitions {
 		Request qlDeletion = new Request.Builder()
 				.url(String.format("%s/v2/entities/%s", quantumLeapUrl, testEntityId))
 				.method("DELETE", null)
-				.addHeader("fiware-Service", FIWARE_SERVICE)
-				.addHeader("fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.build();
 		try {
 			qlDeletionResponse = Optional.of(httpClient.newCall(qlDeletion).execute());
