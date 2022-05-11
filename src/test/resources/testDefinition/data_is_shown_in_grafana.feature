@@ -1,4 +1,4 @@
-Feature: Verify data in grafana, through the broker.
+Feature: Data is shown in grafana.
 
   Scenario: Create AirQuality data, login to grafana and watch it.
     Given The subscription between Orion-LD and QuantumLeap is created.
