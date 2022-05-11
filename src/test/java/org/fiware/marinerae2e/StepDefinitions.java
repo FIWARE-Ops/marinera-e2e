@@ -268,9 +268,9 @@ public class StepDefinitions {
 		}
 		webDriver.quit();
 
-		if (!entityDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				!qlDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				!subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
+		if (entityDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
+				qlDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
+				subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
 			fail(String.format("Cleanup was not successfull: Entity: %s - QL: %s - Subscription: %s",
 					entityDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
 					qlDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
