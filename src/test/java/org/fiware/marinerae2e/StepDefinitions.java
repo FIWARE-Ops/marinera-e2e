@@ -289,9 +289,6 @@ public class StepDefinitions {
 				"        \"attrs\": [\n" +
 				"            \"CO\",\n" +
 				"            \"NO2\",\n" +
-				"\n" +
-				"            \"O3\",\n" +
-				"            \"SO2\",\n" +
 				"            \"humidity\",\n" +
 				"            \"temperature\"\n" +
 				"        ],\n" +
