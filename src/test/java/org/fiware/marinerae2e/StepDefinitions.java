@@ -92,13 +92,12 @@ public class StepDefinitions {
 
 		testEntityId = Optional.ofNullable(System.getenv("TEST_ENTITY_ID")).orElse("test-air-quality");
 		datasourceCheckerDashboardName = Optional.ofNullable(System.getenv("DATASOURCE_CHECKER_DASHBOARD_NAME")).orElse("orion-datasource-checker");
-		datasourceCheckerDashboardName = Optional.ofNullable(System.getenv("DATASOURCE_CHECKER_DASHBOARD_NAME")).orElse("orion-datasource-checker");
 
 		historicDataGridPosition = Optional.ofNullable(System.getenv("HISTORIC_DATA_GRID_POSITION")).orElse("1");
 		currentDataGridPosition = Optional.ofNullable(System.getenv("CURRENT_DATA_GRID_POSITION")).orElse("2");
 
-		grafanaUser = Optional.ofNullable(System.getenv("GRAFANA_USERNAME")).orElse("fiwareAdmin");
-		grafanaPassword = Optional.ofNullable(System.getenv("GRAFANA_PASSWORD")).orElse("fiwareAdmin");
+		grafanaUser = Optional.ofNullable(System.getenv("GRAFANA_USERNAME")).orElse("user");
+		grafanaPassword = Optional.ofNullable(System.getenv("GRAFANA_PASSWORD")).orElse("password");
 	}
 
 	@When("A user opens Grafana.")
