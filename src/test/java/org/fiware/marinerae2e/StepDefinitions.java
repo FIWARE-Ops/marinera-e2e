@@ -296,7 +296,11 @@ public class StepDefinitions {
 				"    },\n" +
 				"    \"notification\": {\n" +
 				"        \"http\": {\n" +
-				"            \"url\": \"%s/v2/notify\"\n" +
+				"            \"url\": \"%s/v2/notify\",\n" +
+				"        	 \"headers\" : { " +
+				"				\"fiware-service\" : \"AirQuality\",		" +
+				"				\"fiware-servicepath\":\"/alcantarilla\""	+
+				"			 }\n " +
 				"        },\n" +
 				"        \"attrs\": [\n" +
 				"            \"CO\",\n" +
