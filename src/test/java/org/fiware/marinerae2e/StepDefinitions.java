@@ -37,6 +37,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class StepDefinitions {
 
+	public static final String FIWARE_SERVICE = "AirQuality";
+	public static final String FIWARE_SERVICE_PATH = "/alcantarilla";
+
 	// name of the test entity to be created
 	private String testEntityId;
 	// the test relies on the datasource-checker dashboard. It needs to be available under the configured name.
@@ -112,8 +115,8 @@ public class StepDefinitions {
 
 		Request subscriptionCreationRequest = new Request.Builder()
 				.url(String.format("%s/v2/subscriptions", brokerUrl))
-				.addHeader("Fiware-Service", "AirQuality")
-				.addHeader("Fiware-ServicePath", "/alcantarilla")
+				.addHeader("Fiware-Service", FIWARE_SERVICE)
+				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.method("POST", subscriptionBody)
 				.build();
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
@@ -150,8 +153,8 @@ public class StepDefinitions {
 			RequestBody entityBody = RequestBody.create(getTestEntity(testEntityId, temp, humidity, co, no2, formatter.format(historicalNow)), MediaType.get("application/json"));
 			Request entityCreationRequest = new Request.Builder()
 					.url(orionUrl)
-					.addHeader("Fiware-Service", "AirQuality")
-					.addHeader("Fiware-ServicePath", "/alcantarilla")
+					.addHeader("Fiware-Service", FIWARE_SERVICE)
+					.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 					.method("POST", entityBody)
 					.build();
 			Response response = brokerClient.newCall(entityCreationRequest).execute();
@@ -203,7 +206,10 @@ public class StepDefinitions {
 	}
 
 	/**
-	 * Removes all artifacts created and quits the
+	 * Removes all artifacts created and quits the connection to selenium.
+	 * Error cases:
+	 * - if selenium connection is not properly closed, selenium will not be available for new runs(e.g. needs to be restarted)
+	 * - if one of the cleanup steps fails, the other will still run, but the test will be marked as a failure
 	 */
 	@After
 	public void cleanUp() {
@@ -212,35 +218,35 @@ public class StepDefinitions {
 		Optional<Response> entityDeletionResponse = Optional.empty();
 
 		OkHttpClient httpClient = new OkHttpClient();
-		// remove subscription
+		// remove subscription from the broker
 		Request subscriptionDeletion = new Request.Builder()
 				.url(String.format("%s/%s", brokerUrl, subscriptionLocation))
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", "AirQuality")
-				.addHeader("Fiware-ServicePath", "/alcantarilla")
+				.addHeader("Fiware-Service", FIWARE_SERVICE)
+				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.build();
 		try {
 			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
 		} catch (Exception e) {
 		}
 
-		// remove all the data from ql
+		// remove all the data from quantum leap
 		Request qlDeletion = new Request.Builder()
 				.url(String.format("%s/v2/entities/%s", quantumLeapUrl, testEntityId))
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", "AirQuality")
-				.addHeader("Fiware-ServicePath", "/alcantarilla")
+				.addHeader("Fiware-Service", FIWARE_SERVICE)
+				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.build();
 		try {
 			qlDeletionResponse = Optional.of(httpClient.newCall(qlDeletion).execute());
 		} catch (Exception e) {
 		}
-		// remove data from orion-ld
+		// remove data from the broker
 		Request entityDeletion = new Request.Builder()
 				.url(String.format("%s/v2/entities/%s", brokerUrl, testEntityId))
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", "AirQuality")
-				.addHeader("Fiware-ServicePath", "/alcantarilla")
+				.addHeader("Fiware-Service", FIWARE_SERVICE)
+				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.build();
 		try {
 			entityDeletionResponse = Optional.of(httpClient.newCall(entityDeletion).execute());
