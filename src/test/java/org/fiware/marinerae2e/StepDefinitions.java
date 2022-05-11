@@ -184,17 +184,12 @@ public class StepDefinitions {
 		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
 		waitAfterNavigate.until(ExpectedConditions.titleIs("Orion datasource checker - Grafana"));
 
-		WebDriverWait waitForHeader = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
-		waitAfterNavigate.until(ExpectedConditions.elementToBeSelected(By.cssSelector("div.panel-header:nth-child(2) > header:nth-child(1) > div:nth-child(1) > h2:nth-child(1)")));
-
-		WebElement panelHeader = webDriver.findElement(By.cssSelector("div.panel-header:nth-child(2) > header:nth-child(1) > div:nth-child(1) > h2:nth-child(1)"));
+		WebElement panelHeader = webDriver.findElement(By.cssSelector("section.panel-container > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > h2:nth-child(1)"));
 		assertEquals("Timescale DB", panelHeader.getText(), "The timescale db panel should be visible.");
 	}
 
 	@Then("The current air-quality data should be visible.")
 	public void verfiy_current_data_is_visible() {
-		WebDriverWait waitForCurrentData = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
-		waitForCurrentData.until(ExpectedConditions.elementToBeSelected(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", currentDataGridPosition))));
 
 		WebElement currentDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", currentDataGridPosition)));
 		List<WebElement> elementListByEntityName = currentDataTable.findElements(By.xpath(String.format("//*[contains(text(), '%s')]", testEntityId)));
@@ -204,10 +199,7 @@ public class StepDefinitions {
 	@Then("The air-quality data history should be visible.")
 	public void verify_historic_data_is_visible() {
 
-		WebDriverWait waitForHistoricData = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
-		waitForHistoricData.until(ExpectedConditions.elementToBeSelected(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", historicDataGridPosition))));
-
-		WebElement historicDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(1)", historicDataGridPosition)));
+		WebElement historicDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", historicDataGridPosition)));
 
 		await("Multiple entries for the test entity should exist in the historic table.")
 				.atMost(Duration.of(5, ChronoUnit.SECONDS))
