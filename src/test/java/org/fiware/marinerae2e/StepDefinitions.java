@@ -180,24 +180,27 @@ public class StepDefinitions {
 	@When("The user navigates to the dashboard.")
 	public void move_to_dashboard() {
 		webDriver.get(String.format("%s/d/%s/%s?orgId=1", grafanaUrl, datasourceCheckerDashboardName, datasourceCheckerDashboardName));
-		await("The user should now be at the orion-checker dashboard.").atMost(Duration.of(5, ChronoUnit.SECONDS)).until(() -> webDriver.getTitle().equals("Orion datasource checker - Grafana"));
 
-		WebElement panelHeader = webDriver.findElement(By.cssSelector("div.panel-header:nth-child(2) > header:nth-child(1) > div:nth-child(1) > h2:nth-child(1)"));
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Orion datasource checker - Grafana"));
+
+		WebElement panelHeader = webDriver.findElement(By.cssSelector("section.panel-container > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > h2:nth-child(1)"));
 		assertEquals("Timescale DB", panelHeader.getText(), "The timescale db panel should be visible.");
 	}
 
 	@Then("The current air-quality data should be visible.")
-	public void verfiy_current_data_is_visible() {
-		// we expect the current data panel to be the second in the grid
-		WebElement currentDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", currentDataGridPosition)));
-		List<WebElement> elementListByEntityName = currentDataTable.findElements(By.xpath(String.format("//*[contains(text(), '%s')]", testEntityId)));
-		assertEquals(1, elementListByEntityName.size(), "The entity should be there exactly once.");
+	public void verify_current_data_is_visible() {
+
+		List<WebElement> tableRowElements = webDriver.findElements(By.cssSelector(String.format(".table-panel-table > tbody:nth-child(%s) > tr:nth-child(1)", currentDataGridPosition)));
+		assertEquals(1, tableRowElements.size(), "The entity should be there exactly once.");
+		assertEquals(testEntityId, tableRowElements.get(0).findElements(By.tagName("td")).get(0).getText(), "The entry should be the test entity.");
+
 	}
 
 	@Then("The air-quality data history should be visible.")
 	public void verify_historic_data_is_visible() {
-		// we expect the historic panel to be the first in the grid
-		WebElement historicDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(1)", historicDataGridPosition)));
+
+		WebElement historicDataTable = webDriver.findElement(By.cssSelector(String.format("div.react-grid-item:nth-child(%s)", historicDataGridPosition)));
 
 		await("Multiple entries for the test entity should exist in the historic table.")
 				.atMost(Duration.of(5, ChronoUnit.SECONDS))
@@ -211,7 +214,7 @@ public class StepDefinitions {
 	 * - if one of the cleanup steps fails, the other will still run, but the test will be marked as a failure
 	 */
 	@After
-	public void cleanUp() {
+	public void cleanUp() throws MalformedURLException {
 		Optional<Response> subDeletionResponse = Optional.empty();
 		Optional<Response> qlDeletionResponse = Optional.empty();
 		Optional<Response> entityDeletionResponse = Optional.empty();
@@ -229,12 +232,24 @@ public class StepDefinitions {
 		} catch (Exception e) {
 		}
 
+		URL ql = new URL(quantumLeapUrl);
+
+		HttpUrl qlUrl = new HttpUrl.Builder()
+				.host(ql.getHost())
+				.port(ql.getPort())
+				.scheme(ql.getProtocol())
+				.addPathSegment("v2")
+				.addPathSegment("entities")
+				.addPathSegment(testEntityId)
+				.addEncodedQueryParameter("type", "AirQualityObserved")
+				.build();
+
 		// remove all the data from quantum leap
 		Request qlDeletion = new Request.Builder()
-				.url(String.format("%s/v2/entities/%s", quantumLeapUrl, testEntityId))
+				.url(qlUrl)
+				// notifications are sent to the default path - needs to be checked
+				.addHeader("Fiware-ServicePath", "/")
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", FIWARE_SERVICE)
-				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
 				.build();
 		try {
 			qlDeletionResponse = Optional.of(httpClient.newCall(qlDeletion).execute());
@@ -253,9 +268,9 @@ public class StepDefinitions {
 		}
 		webDriver.quit();
 
-		if (!entityDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				!qlDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				!subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
+		if (entityDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
+				qlDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
+				subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
 			fail(String.format("Cleanup was not successfull: Entity: %s - QL: %s - Subscription: %s",
 					entityDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
 					qlDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
@@ -281,14 +296,15 @@ public class StepDefinitions {
 				"    },\n" +
 				"    \"notification\": {\n" +
 				"        \"http\": {\n" +
-				"            \"url\": \"%s/v2/notify\"\n" +
+				"            \"url\": \"%s/v2/notify\",\n" +
+				"        	 \"headers\" : { " +
+				"				\"fiware-service\" : \"AirQuality\",		" +
+				"				\"fiware-servicepath\":\"/alcantarilla\""	+
+				"			 }\n " +
 				"        },\n" +
 				"        \"attrs\": [\n" +
 				"            \"CO\",\n" +
 				"            \"NO2\",\n" +
-				"\n" +
-				"            \"O3\",\n" +
-				"            \"SO2\",\n" +
 				"            \"humidity\",\n" +
 				"            \"temperature\"\n" +
 				"        ],\n" +
