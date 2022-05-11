@@ -58,7 +58,7 @@ public class StepDefinitions {
 		remoteDriverUrl = Optional.ofNullable(System.getenv("REMOTE_DRIVER_URL")).orElse("http://localhost:4444");
 		grafanaUrl = Optional.ofNullable(System.getenv("GRAFANA_URL")).orElse("http://localhost:3000");
 		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:1026");
-		quantumLeapUrl = Optional.ofNullable(System.getenv("QUANTUM_LEAP_URL")).orElse("http://quantumleap-quantumleap:80");
+		quantumLeapUrl = Optional.ofNullable(System.getenv("QUANTUM_LEAP_URL")).orElse("http://quantumleap-quantumleap:8668");
 		testTenant = Optional.ofNullable(System.getenv("TEST_TENANT")).orElse("test-tenant");
 
 		grafanaUser = Optional.ofNullable(System.getenv("GRAFANA_USERNAME")).orElse("fiwareAdmin");
@@ -97,6 +97,11 @@ public class StepDefinitions {
 		int twoDaysInMinutes = 48 * 60;
 		// send in 5 minute steps
 		for (int i = 0; i < twoDaysInMinutes; i += 5) {
+			double temp = Math.random() * 20;
+			double humidity = Math.random() * 20;
+			double co = Math.random();
+			double no2 = Math.random();
+
 			HttpUrl orionUrl = new HttpUrl.Builder()
 					.host(url.getHost())
 					.port(url.getPort())
@@ -106,7 +111,7 @@ public class StepDefinitions {
 					.addEncodedQueryParameter("options", "upsert")
 					.build();
 			Instant historicalNow = now.minus(Duration.of(5, ChronoUnit.MINUTES));
-			RequestBody entityBody = RequestBody.create(getTestEntity("test-air-quality", 10.0, 12.2, 0.5, 0.9, formatter.format(historicalNow)), MediaType.get("application/json"));
+			RequestBody entityBody = RequestBody.create(getTestEntity("test-air-quality", temp, humidity, co, no2, formatter.format(historicalNow)), MediaType.get("application/json"));
 			Request entityCreationRequest = new Request.Builder()
 					.url(orionUrl)
 					.addHeader("Fiware-Service", "AirQuality")
