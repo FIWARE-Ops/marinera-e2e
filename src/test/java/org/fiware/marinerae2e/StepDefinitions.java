@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class StepDefinitions {
 
-	public static final String FIWARE_SERVICE = "AirQuality";
-	public static final String FIWARE_SERVICE_PATH = "/alcantarilla";
+	public String fiwareService = "AirQuality";
+	public String fiwareServicePath = "/alcantarilla";
 
 	// name of the test entity to be created
 	private String testEntityId;
@@ -98,6 +98,9 @@ public class StepDefinitions {
 
 		grafanaUser = Optional.ofNullable(System.getenv("GRAFANA_USERNAME")).orElse("user");
 		grafanaPassword = Optional.ofNullable(System.getenv("GRAFANA_PASSWORD")).orElse("password");
+
+		fiwareService = Optional.ofNullable(System.getenv("FIWARE_SERVICE")).orElse("AirQuality");
+		fiwareServicePath = Optional.ofNullable(System.getenv("FIWARE_SERVICE_PATH")).orElse("/alcantarilla");
 	}
 
 	@When("A user opens Grafana.")
@@ -110,12 +113,12 @@ public class StepDefinitions {
 	public void create_subscription() throws IOException {
 		OkHttpClient brokerClient = new OkHttpClient();
 
-		RequestBody subscriptionBody = RequestBody.create(getSubscriptionString(quantumLeapUrl), MediaType.get("application/json"));
+		RequestBody subscriptionBody = RequestBody.create(getSubscriptionString(quantumLeapUrl, fiwareService, fiwareServicePath), MediaType.get("application/json"));
 
 		Request subscriptionCreationRequest = new Request.Builder()
 				.url(String.format("%s/v2/subscriptions", brokerUrl))
-				.addHeader("Fiware-Service", FIWARE_SERVICE)
-				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
+				.addHeader("Fiware-Service", fiwareService)
+				.addHeader("Fiware-ServicePath", fiwareServicePath)
 				.method("POST", subscriptionBody)
 				.build();
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
@@ -152,8 +155,8 @@ public class StepDefinitions {
 			RequestBody entityBody = RequestBody.create(getTestEntity(testEntityId, temp, humidity, co, no2, formatter.format(historicalNow)), MediaType.get("application/json"));
 			Request entityCreationRequest = new Request.Builder()
 					.url(orionUrl)
-					.addHeader("Fiware-Service", FIWARE_SERVICE)
-					.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
+					.addHeader("Fiware-Service", fiwareService)
+					.addHeader("Fiware-ServicePath", fiwareServicePath)
 					.method("POST", entityBody)
 					.build();
 			Response response = brokerClient.newCall(entityCreationRequest).execute();
@@ -224,8 +227,8 @@ public class StepDefinitions {
 		Request subscriptionDeletion = new Request.Builder()
 				.url(String.format("%s/%s", brokerUrl, subscriptionLocation))
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", FIWARE_SERVICE)
-				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
+				.addHeader("Fiware-Service", fiwareService)
+				.addHeader("Fiware-ServicePath", fiwareServicePath)
 				.build();
 		try {
 			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
@@ -247,8 +250,8 @@ public class StepDefinitions {
 		// remove all the data from quantum leap
 		Request qlDeletion = new Request.Builder()
 				.url(qlUrl)
-				// notifications are sent to the default path - needs to be checked
-				.addHeader("Fiware-ServicePath", "/")
+				.addHeader("Fiware-Service", fiwareService)
+				.addHeader("Fiware-ServicePath", fiwareServicePath)
 				.method("DELETE", null)
 				.build();
 		try {
@@ -259,8 +262,8 @@ public class StepDefinitions {
 		Request entityDeletion = new Request.Builder()
 				.url(String.format("%s/v2/entities/%s", brokerUrl, testEntityId))
 				.method("DELETE", null)
-				.addHeader("Fiware-Service", FIWARE_SERVICE)
-				.addHeader("Fiware-ServicePath", FIWARE_SERVICE_PATH)
+				.addHeader("Fiware-Service", fiwareService)
+				.addHeader("Fiware-ServicePath", fiwareServicePath)
 				.build();
 		try {
 			entityDeletionResponse = Optional.of(httpClient.newCall(entityDeletion).execute());
@@ -278,7 +281,7 @@ public class StepDefinitions {
 		}
 	}
 
-	private String getSubscriptionString(String quantumLeapAddress) {
+	private String getSubscriptionString(String quantumLeapAddress, String fiwareService, String fiwareServicePath) {
 		return String.format("{\n" +
 				"    \"description\": \"AQ - Orion to QuantumLeap subscription\",\n" +
 				"    \"subject\": {\n" +
@@ -295,11 +298,11 @@ public class StepDefinitions {
 				"        }\n" +
 				"    },\n" +
 				"    \"notification\": {\n" +
-				"        \"http\": {\n" +
+				"        \"httpCustom\": {\n" +
 				"            \"url\": \"%s/v2/notify\",\n" +
 				"        	 \"headers\" : { " +
-				"				\"fiware-service\" : \"AirQuality\",		" +
-				"				\"fiware-servicepath\":\"/alcantarilla\""	+
+				"				\"fiware-service\" : \"%s\",		" +
+				"				\"fiware-servicepath\":\"%s\""	+
 				"			 }\n " +
 				"        },\n" +
 				"        \"attrs\": [\n" +
@@ -314,7 +317,7 @@ public class StepDefinitions {
 				"            \"TimeInstant\"\n" +
 				"        ]\n" +
 				"    }\n" +
-				"}", quantumLeapAddress);
+				"}", quantumLeapAddress, fiwareService, fiwareServicePath);
 	}
 
 	private String getTestEntity(String id, double temperature, double humidity, double co, double no2, String timeInstant) {
