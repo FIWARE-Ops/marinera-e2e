@@ -151,7 +151,7 @@ public class StepDefinitions {
 					.addPathSegment("entities")
 					.addEncodedQueryParameter("options", "upsert")
 					.build();
-			Instant historicalNow = now.minus(Duration.of(5, ChronoUnit.MINUTES));
+			Instant historicalNow = now.minus(Duration.of(i, ChronoUnit.MINUTES));
 			RequestBody entityBody = RequestBody.create(getTestEntity(testEntityId, temp, humidity, co, no2, formatter.format(historicalNow)), MediaType.get("application/json"));
 			Request entityCreationRequest = new Request.Builder()
 					.url(orionUrl)
