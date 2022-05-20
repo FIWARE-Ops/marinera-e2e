@@ -100,7 +100,7 @@ public class StepDefinitions {
 	private void readEnv() {
 		remoteDriverUrl = Optional.ofNullable(System.getenv("REMOTE_DRIVER_URL")).orElse("http://localhost:4444");
 		grafanaUrl = Optional.ofNullable(System.getenv("GRAFANA_URL")).orElse("http://localhost:3000");
-		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:9080");
+		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:1026");
 		quantumLeapUrl = Optional.ofNullable(System.getenv("QUANTUM_LEAP_URL")).orElse("http://quantumleap-quantumleap:8668");
 
 		testEntityId = Optional.ofNullable(System.getenv("TEST_ENTITY_ID")).orElse("test-air-quality");
