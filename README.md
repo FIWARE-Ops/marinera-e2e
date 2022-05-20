@@ -43,21 +43,15 @@ The tests can be configured, using the following Enviornment-Variables:
 | CURRENT_DATA_GRID_POSITION        | Position of the current data table inside the data grid.              | ```2```                                   |
 | GRAFANA_USERNAME                  | Username to be used for logging into grafana.                         | ```user```                                |
 | GRAFANA_PASSWORD                  | Password to be used for logging into grafana.                         | ```password```                            |
+| KEYCLOAK_USERNAME                 | Username to be used for JWT generation.                               | ```null```                                |
+| KEYCLOAK_PASSWORD                 | Password to be used for JWT generation.                               | ```null```                                |
+| KEYCLOAK_CLIENT_ID                | ClientId to be used for JWT generation.                               | ```null```                                |
+| KEYCLOAK_CLIENT_SECRET            | ClientSecret to be used for JWT generation.                           | ```null```                                |
+| KEYCLOAK_URL                      | Url of the keycloak.                                                  | ```null```                                |
+| KEYCLOAK_REALM                    | Realm to authenticate in.                                             | ```null```                                |
+| PEP_URL                           | Url of the broker has to be changed to the PEP-Proxy.                 | ```null```                                |
 
-## Security
-
-The tests can run directly through the context-broker api or include testing the [PEP-Proxy](https://github.com/FIWARE/tutorials.PEP-Proxy) by getting a token from [Keycloak](https://www.keycloak.org/) and authenticate with that.
-To enable the security integration, configure the following vars:
-
-| Name                               | Description                                           | Default                     |
-|------------------------------------|-------------------------------------------------------|-----------------------------|
-| PEP_FLOW_ENABLED                   | Enable the test-data flowing through the PEP-Proxy    | ```false```                 |
-| KEYCLOAK_USERNAME                  | Username to be used for JWT generation.               | ```null```                  |
-| KEYCLOAK_PASSWORD                  | Password to be used for JWT generation.               | ```null```                  |
-| KEYCLOAK_CLIENT_ID                 | ClientId to be used for JWT generation.               | ```null```                  |
-| KEYCLOAK_CLIENT_SECRET             | ClientSecret to be used for JWT generation.           | ```null```                  |
-| KEYCLOAK_URL                       | Url of the keycloak.                                  | ```null```                  |
-| KEYCLOAK_REALM                     | Realm to authenticate in.                             | ```null```                  |
-| BROKER_URL                         | Url of the broker has to be changed to the PEP-Proxy. | ```http://localhost:1026``` |
-
-Be aware that the user requires the scopes to create and update entities and create subscriptions.
+Currently, two scenarios are defined:
+ - one running through broker-api
+ - the other running through the pep-proxy
+With the "groups" parameter, the execution can be configured. If the test should be used without security, run them via ```mvn clean test -DexcludeGroups="secured"```.

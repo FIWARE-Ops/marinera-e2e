@@ -11,7 +11,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.token.TokenManager;
 import org.keycloak.representations.AccessTokenResponse;
@@ -67,7 +66,6 @@ public class StepDefinitions {
 	private String grafanaPassword;
 
 	// KEYCLOAK
-	private boolean pepFlowEnabled = false;
 	private String keycloakUsername;
 	private String keycloakPassword;
 	private String keycloakClientId;
@@ -117,17 +115,18 @@ public class StepDefinitions {
 		fiwareService = Optional.ofNullable(System.getenv("FIWARE_SERVICE")).orElse("AirQuality");
 		fiwareServicePath = Optional.ofNullable(System.getenv("FIWARE_SERVICE_PATH")).orElse("/alcantarilla");
 
-		//keycloak config
-		pepFlowEnabled = Optional.ofNullable(System.getenv("PEP_FLOW_ENABLED")).map(Boolean::getBoolean).orElse(false);
-		if (pepFlowEnabled) {
-			keycloakUsername = Optional.ofNullable(System.getenv("KEYCLOAK_USERNAME")).orElseThrow(() -> new RuntimeException("A username is required for the pep-flow."));
-			keycloakPassword = Optional.ofNullable(System.getenv("KEYCLOAK_PASSWORD")).orElseThrow(() -> new RuntimeException("A password is required for the pep-flow."));
-			keycloakClientId = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_ID")).orElseThrow(() -> new RuntimeException("A client-id is required for the pep-flow."));
-			keycloakClientSecret = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_SECRET")).orElseThrow(() -> new RuntimeException("A client-secret is required for the pep-flow."));
-			keycloakURL = Optional.ofNullable(System.getenv("KEYCLOAK_URL")).orElseThrow(() -> new RuntimeException("URL of keycloak is required for the pep-flow."));
-			keycloakRealm = Optional.ofNullable(System.getenv("KEYCLOAK_REALM")).orElseThrow(() -> new RuntimeException("A realm is required for the pep-flow."));
-			optionalTokenManager = getOptionalTokenManager();
-		}
+	}
+
+	@Given("The keycloak connection is setup.")
+	public void setupSecurity() {
+		keycloakUsername = Optional.ofNullable(System.getenv("KEYCLOAK_USERNAME")).orElseThrow(() -> new RuntimeException("A username is required for the pep-flow."));
+		keycloakPassword = Optional.ofNullable(System.getenv("KEYCLOAK_PASSWORD")).orElseThrow(() -> new RuntimeException("A password is required for the pep-flow."));
+		keycloakClientId = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_ID")).orElseThrow(() -> new RuntimeException("A client-id is required for the pep-flow."));
+		keycloakClientSecret = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_SECRET")).orElseThrow(() -> new RuntimeException("A client-secret is required for the pep-flow."));
+		keycloakURL = Optional.ofNullable(System.getenv("KEYCLOAK_URL")).orElseThrow(() -> new RuntimeException("URL of keycloak is required for the pep-flow."));
+		keycloakRealm = Optional.ofNullable(System.getenv("KEYCLOAK_REALM")).orElseThrow(() -> new RuntimeException("A realm is required for the pep-flow."));
+		brokerUrl = Optional.ofNullable(System.getenv("PEP_URL")).orElseThrow(() -> new RuntimeException("A url to the pep-proxy needs to be provided."));
+		optionalTokenManager = getOptionalTokenManager();
 	}
 
 	@When("A user opens Grafana.")
