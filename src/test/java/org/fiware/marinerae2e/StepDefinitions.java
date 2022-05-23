@@ -5,6 +5,7 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -76,6 +77,13 @@ public class StepDefinitions {
 	// holds the test subscription's location for later cleanup
 	private String subscriptionLocation;
 
+	// Air Quality Application variables
+	private String airQualityDataMonitorDashboardName;
+	private String airQualityIndexDashboardName;
+	private String airQualityPollutantsDashboardName;
+	private String airQualityParticulateMatterDashboardName;
+	private String airQualityHome;
+
 	// instance of the webdriver for contacting selenium
 	private static WebDriver webDriver;
 
@@ -115,6 +123,11 @@ public class StepDefinitions {
 		fiwareService = Optional.ofNullable(System.getenv("FIWARE_SERVICE")).orElse("AirQuality");
 		fiwareServicePath = Optional.ofNullable(System.getenv("FIWARE_SERVICE_PATH")).orElse("/alcantarilla");
 
+		airQualityDataMonitorDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_DATA_MONITOR_DASHBOARD_NAME")).orElse("air-quality-data-monitor");
+		airQualityIndexDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_INDEX_DASHBOARD_NAME")).orElse("air-quality-index-ica");
+		airQualityPollutantsDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_POLLUTANTS_DASHBOARD_NAME")).orElse("air-quality-pollutants");
+		airQualityParticulateMatterDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_PARTICULATE_MATTER_DASHBOARD_NAME")).orElse("air-quality-particulate-matter");
+		airQualityHome = Optional.ofNullable(System.getenv("AIR_QUALITY_HOME")).orElse("aqapp-home");
 	}
 
 	@Given("The keycloak connection is setup.")
@@ -251,6 +264,82 @@ public class StepDefinitions {
 		await("Multiple entries for the test entity should exist in the historic table.")
 				.atMost(Duration.of(5, ChronoUnit.SECONDS))
 				.until(() -> historicDataTable.findElements(By.xpath(String.format("//*[contains(text(), '%s')]", testEntityId))).size() > 1);
+	}
+
+	@Given("Grafana is deployed.")
+	public void check_grafana_is_deployed() throws IOException {
+		
+		URL url = new URL(grafanaUrl);
+		OkHttpClient grafanaClient = new OkHttpClient();
+		Request checkGrafana = new Request.Builder().url(url).build();
+		Response response = grafanaClient.newCall(checkGrafana).execute();
+
+		assertEquals(200, response.code());
+
+	}
+
+	@Then("The user should be able to navigate to Air Quality Data Monitor dashboard.")
+	public void move_to_aqapp_data_monitor_dashboard() {
+
+		webDriver.get(String.format("%s/d/%s/%s?orgId=1", grafanaUrl, airQualityHome, airQualityDataMonitorDashboardName));
+
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Air Quality Data Monitor - Grafana"));
+
+		WebElement panelHeader = webDriver.findElement(By.cssSelector(".dashboard-title > h1"));
+		assertEquals("AIR QUALITY DATA MONITOR", panelHeader.getText(), "AIR QUALITY DATA MONITOR");
+	}
+
+	@Then("The user should be able to navigate to Air Quality Index \\(ICA) dashboard.")
+	public void move_to_aqapp_index_dashboard() {
+		
+		List<WebElement> buttonContainerList = webDriver.findElements(By.cssSelector(".button-container"));
+		buttonContainerList.get(0).click();
+
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Air Quality Index (ICA) - Grafana"));
+
+		WebElement panelHeader = webDriver.findElement(By.cssSelector(".dashboard-title > h1"));
+		assertEquals("AIR QUALITY INDEX (ICA)", panelHeader.getText(), "AIR QUALITY INDEX (ICA)");
+
+	}
+
+	@Then("The user should be able to return to Air Quality Data Monitor dashboard.")
+	public void return_to_aqapp_data_monitor_dashboard() {
+
+		WebElement backButton = webDriver.findElement(By.cssSelector(".back-container-icon"));
+		backButton.click();
+
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Air Quality Data Monitor - Grafana"));
+
+	}
+
+	@Then("The user should be able to navigate to Air Quality - Pollutants dashboard.")
+	public void move_to_aqapp_pollutants_dashboard() {
+
+		List<WebElement> buttonContainerList = webDriver.findElements(By.cssSelector(".button-container"));
+		buttonContainerList.get(1).click();
+
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Air Quality - Pollutants - Grafana"));
+
+		WebElement panelHeader = webDriver.findElement(By.cssSelector(".dashboard-title > h1"));
+		assertEquals("AIR QUALITY - POLLUTANTS", panelHeader.getText(), "AIR QUALITY - POLLUTANTS");
+
+	}
+
+	@Then("The user should be able to navigate to Air Quality - Particulate matter dashboard.")
+	public void move_to_aqapp_particulate_matter_dashboard() {
+
+		List<WebElement> buttonContainerList = webDriver.findElements(By.cssSelector(".button-container"));
+		buttonContainerList.get(2).click();
+
+		WebDriverWait waitAfterNavigate = new WebDriverWait(webDriver, Duration.of(15, ChronoUnit.SECONDS));
+		waitAfterNavigate.until(ExpectedConditions.titleIs("Air Quality - Particulate Matter - Grafana"));
+
+		WebElement panelHeader = webDriver.findElement(By.cssSelector(".dashboard-title > h1"));
+		assertEquals("AIR QUALITY - PARTICULATE MATTER", panelHeader.getText(), "AIR QUALITY - PARTICULATE MATTER");
 	}
 
 	/**
