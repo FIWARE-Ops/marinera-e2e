@@ -1,7 +1,7 @@
 Feature: Data is shown in grafana.
 
   @unsecured
-  Scenario: Create AirQuality data directly throught the broker, login to grafana and watch it.
+  Scenario: Create AirQuality data directly through the broker, login to grafana and watch it.
     Given The subscription between Orion-LD and QuantumLeap is created.
     And Some AirQuality data is created.
     When A user opens Grafana.
