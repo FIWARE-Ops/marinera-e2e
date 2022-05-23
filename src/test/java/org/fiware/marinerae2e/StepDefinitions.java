@@ -145,7 +145,7 @@ public class StepDefinitions {
 				.url(String.format("%s/v2/subscriptions", brokerUrl))
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
-				.addHeader("Authorization", String.format("Bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.method("POST", subscriptionBody)
 				.build();
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
@@ -199,7 +199,7 @@ public class StepDefinitions {
 					.url(orionUrl)
 					.addHeader("Fiware-Service", fiwareService)
 					.addHeader("Fiware-ServicePath", fiwareServicePath)
-					.addHeader("Authorization", String.format("Bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
+					.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 					.method("POST", entityBody)
 					.build();
 			Response response = brokerClient.newCall(entityCreationRequest).execute();
@@ -272,6 +272,7 @@ public class StepDefinitions {
 				.method("DELETE", null)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.build();
 		try {
 			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
@@ -295,6 +296,7 @@ public class StepDefinitions {
 				.url(qlUrl)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.method("DELETE", null)
 				.build();
 		try {
@@ -307,6 +309,7 @@ public class StepDefinitions {
 				.method("DELETE", null)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.build();
 		try {
 			entityDeletionResponse = Optional.of(httpClient.newCall(entityDeletion).execute());
