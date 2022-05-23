@@ -265,6 +265,9 @@ public class StepDefinitions {
 		Optional<Response> qlDeletionResponse = Optional.empty();
 		Optional<Response> entityDeletionResponse = Optional.empty();
 
+		// cleanUp directly at the broker, to not fail in case of broken policies
+		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:1026");
+
 		OkHttpClient httpClient = new OkHttpClient();
 		// remove subscription from the broker
 		Request subscriptionDeletion = new Request.Builder()
@@ -277,6 +280,7 @@ public class StepDefinitions {
 		try {
 			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
 		} catch (Exception e) {
+
 		}
 
 		URL ql = new URL(quantumLeapUrl);
