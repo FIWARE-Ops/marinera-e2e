@@ -5,7 +5,6 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -79,9 +78,6 @@ public class StepDefinitions {
 
 	// Air Quality Application variables
 	private String airQualityDataMonitorDashboardName;
-	private String airQualityIndexDashboardName;
-	private String airQualityPollutantsDashboardName;
-	private String airQualityParticulateMatterDashboardName;
 	private String airQualityHome;
 
 	// instance of the webdriver for contacting selenium
@@ -124,9 +120,6 @@ public class StepDefinitions {
 		fiwareServicePath = Optional.ofNullable(System.getenv("FIWARE_SERVICE_PATH")).orElse("/alcantarilla");
 
 		airQualityDataMonitorDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_DATA_MONITOR_DASHBOARD_NAME")).orElse("air-quality-data-monitor");
-		airQualityIndexDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_INDEX_DASHBOARD_NAME")).orElse("air-quality-index-ica");
-		airQualityPollutantsDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_POLLUTANTS_DASHBOARD_NAME")).orElse("air-quality-pollutants");
-		airQualityParticulateMatterDashboardName = Optional.ofNullable(System.getenv("AIR_QUALITY_PARTICULATE_MATTER_DASHBOARD_NAME")).orElse("air-quality-particulate-matter");
 		airQualityHome = Optional.ofNullable(System.getenv("AIR_QUALITY_HOME")).orElse("aqapp-home");
 	}
 
