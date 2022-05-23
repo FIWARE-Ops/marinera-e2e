@@ -11,6 +11,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.token.TokenManager;
+import org.keycloak.representations.AccessTokenResponse;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -62,11 +65,21 @@ public class StepDefinitions {
 	// password of the grafana(admin)-user to use
 	private String grafanaPassword;
 
+	// KEYCLOAK
+	private String keycloakUsername;
+	private String keycloakPassword;
+	private String keycloakClientId;
+	private String keycloakClientSecret;
+	private String keycloakURL;
+	private String keycloakRealm;
+
 	// holds the test subscription's location for later cleanup
 	private String subscriptionLocation;
 
 	// instance of the webdriver for contacting selenium
 	private static WebDriver webDriver;
+
+	private Optional<TokenManager> optionalTokenManager = Optional.empty();
 
 	/**
 	 * Reads the env and creates the connection to selenium.
@@ -101,6 +114,19 @@ public class StepDefinitions {
 
 		fiwareService = Optional.ofNullable(System.getenv("FIWARE_SERVICE")).orElse("AirQuality");
 		fiwareServicePath = Optional.ofNullable(System.getenv("FIWARE_SERVICE_PATH")).orElse("/alcantarilla");
+
+	}
+
+	@Given("The keycloak connection is setup.")
+	public void setupSecurity() {
+		keycloakUsername = Optional.ofNullable(System.getenv("KEYCLOAK_USERNAME")).orElseThrow(() -> new RuntimeException("A username is required for the pep-flow."));
+		keycloakPassword = Optional.ofNullable(System.getenv("KEYCLOAK_PASSWORD")).orElseThrow(() -> new RuntimeException("A password is required for the pep-flow."));
+		keycloakClientId = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_ID")).orElseThrow(() -> new RuntimeException("A client-id is required for the pep-flow."));
+		keycloakClientSecret = Optional.ofNullable(System.getenv("KEYCLOAK_CLIENT_SECRET")).orElseThrow(() -> new RuntimeException("A client-secret is required for the pep-flow."));
+		keycloakURL = Optional.ofNullable(System.getenv("KEYCLOAK_URL")).orElseThrow(() -> new RuntimeException("URL of keycloak is required for the pep-flow."));
+		keycloakRealm = Optional.ofNullable(System.getenv("KEYCLOAK_REALM")).orElseThrow(() -> new RuntimeException("A realm is required for the pep-flow."));
+		brokerUrl = Optional.ofNullable(System.getenv("PEP_URL")).orElseThrow(() -> new RuntimeException("A url to the pep-proxy needs to be provided."));
+		optionalTokenManager = getOptionalTokenManager();
 	}
 
 	@When("A user opens Grafana.")
@@ -119,6 +145,7 @@ public class StepDefinitions {
 				.url(String.format("%s/v2/subscriptions", brokerUrl))
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.method("POST", subscriptionBody)
 				.build();
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
@@ -127,8 +154,23 @@ public class StepDefinitions {
 		subscriptionLocation = response.header("Location");
 	}
 
+	private Optional<TokenManager> getOptionalTokenManager() {
+
+		return Optional.of(KeycloakBuilder.builder()
+				.username(keycloakUsername)
+				.password(keycloakPassword)
+				.clientSecret(keycloakClientSecret)
+				.clientId(keycloakClientId)
+				.grantType("password")
+				.realm(keycloakRealm)
+				.serverUrl(keycloakURL)
+				.build()
+				.tokenManager());
+	}
+
 	@Given("Some AirQuality data is created.")
 	public void push_historical_data_to_orion() throws IOException {
+
 		Instant now = Instant.now();
 		String patternFormat = "yyyy-MM-dd'T'hh:mm:ssZ";
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(patternFormat)
@@ -157,6 +199,7 @@ public class StepDefinitions {
 					.url(orionUrl)
 					.addHeader("Fiware-Service", fiwareService)
 					.addHeader("Fiware-ServicePath", fiwareServicePath)
+					.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 					.method("POST", entityBody)
 					.build();
 			Response response = brokerClient.newCall(entityCreationRequest).execute();
@@ -222,6 +265,9 @@ public class StepDefinitions {
 		Optional<Response> qlDeletionResponse = Optional.empty();
 		Optional<Response> entityDeletionResponse = Optional.empty();
 
+		// cleanUp directly at the broker, to not fail in case of broken policies
+		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:1026");
+
 		OkHttpClient httpClient = new OkHttpClient();
 		// remove subscription from the broker
 		Request subscriptionDeletion = new Request.Builder()
@@ -229,10 +275,12 @@ public class StepDefinitions {
 				.method("DELETE", null)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.build();
 		try {
 			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
 		} catch (Exception e) {
+
 		}
 
 		URL ql = new URL(quantumLeapUrl);
@@ -252,6 +300,7 @@ public class StepDefinitions {
 				.url(qlUrl)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.method("DELETE", null)
 				.build();
 		try {
@@ -264,6 +313,7 @@ public class StepDefinitions {
 				.method("DELETE", null)
 				.addHeader("Fiware-Service", fiwareService)
 				.addHeader("Fiware-ServicePath", fiwareServicePath)
+				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
 				.build();
 		try {
 			entityDeletionResponse = Optional.of(httpClient.newCall(entityDeletion).execute());
@@ -302,7 +352,7 @@ public class StepDefinitions {
 				"            \"url\": \"%s/v2/notify\",\n" +
 				"        	 \"headers\" : { " +
 				"				\"fiware-service\" : \"%s\",		" +
-				"				\"fiware-servicepath\":\"%s\""	+
+				"				\"fiware-servicepath\":\"%s\"" +
 				"			 }\n " +
 				"        },\n" +
 				"        \"attrs\": [\n" +
