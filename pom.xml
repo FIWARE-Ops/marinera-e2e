@@ -16,6 +16,8 @@
         <version.org.awaitility>4.0.3</version.org.awaitility>
         <version.org.apache.maven.plugins.maven-surefire-plugin>3.0.0-M5</version.org.apache.maven.plugins.maven-surefire-plugin>
         <version.com.squareup.okhttp3>4.9.3</version.com.squareup.okhttp3>
+        <version.org.keycloak>18.0.0</version.org.keycloak>
+        <version.com.fasterxml.jackson>2.13.3</version.com.fasterxml.jackson>
 
     </properties>
 
@@ -83,6 +85,28 @@
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
             <version>${version.io.cucumber}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-authz-client</artifactId>
+            <version>${version.org.keycloak}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>${version.org.keycloak}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${version.com.fasterxml.jackson}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${version.com.fasterxml.jackson}</version>
         </dependency>
 
         <dependency>
