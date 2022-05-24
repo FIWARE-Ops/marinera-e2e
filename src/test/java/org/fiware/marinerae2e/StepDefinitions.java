@@ -25,6 +25,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -366,6 +367,8 @@ public class StepDefinitions {
 			} catch (Exception e) {
 
 			}
+		} else {
+			subDeletionResponse = Optional.of(new Response.Builder().code(204).build());
 		}
 
 		URL ql = new URL(quantumLeapUrl);
@@ -408,7 +411,7 @@ public class StepDefinitions {
 
 		if (entityDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
 				qlDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
-				subDeletionResponse.map(r -> !r.isSuccessful()).orElseGet(() -> !subscriptionLocation.isPresent())) {
+				subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
 			fail(String.format("Cleanup was not successfull: Entity: %s - QL: %s - Subscription: %s",
 					entityDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
 					qlDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
