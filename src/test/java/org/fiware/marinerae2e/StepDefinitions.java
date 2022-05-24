@@ -74,7 +74,7 @@ public class StepDefinitions {
 	private String keycloakRealm;
 
 	// holds the test subscription's location for later cleanup
-	private String subscriptionLocation;
+	private Optional<String> subscriptionLocation = Optional.empty();
 
 	// Air Quality Application variables
 	private String airQualityDataMonitorDashboardName;
@@ -157,7 +157,7 @@ public class StepDefinitions {
 		Response response = brokerClient.newCall(subscriptionCreationRequest).execute();
 		assertTrue(response.code() >= 200 && response.code() < 300, "We expect any kind of successful response.");
 		// store for better cleanup
-		subscriptionLocation = response.header("Location");
+		subscriptionLocation = Optional.of(response.header("Location"));
 	}
 
 	private Optional<TokenManager> getOptionalTokenManager() {
@@ -261,7 +261,7 @@ public class StepDefinitions {
 
 	@Given("Grafana is deployed.")
 	public void check_grafana_is_deployed() throws IOException {
-		
+
 		URL url = new URL(grafanaUrl);
 		OkHttpClient grafanaClient = new OkHttpClient();
 		Request checkGrafana = new Request.Builder().url(url).build();
@@ -285,7 +285,7 @@ public class StepDefinitions {
 
 	@Then("The user should be able to navigate to Air Quality Index \\(ICA) dashboard.")
 	public void move_to_aqapp_index_dashboard() {
-		
+
 		List<WebElement> buttonContainerList = webDriver.findElements(By.cssSelector(".button-container"));
 		buttonContainerList.get(0).click();
 
@@ -351,18 +351,21 @@ public class StepDefinitions {
 		brokerUrl = Optional.ofNullable(System.getenv("BROKER_URL")).orElse("http://localhost:1026");
 
 		OkHttpClient httpClient = new OkHttpClient();
-		// remove subscription from the broker
-		Request subscriptionDeletion = new Request.Builder()
-				.url(String.format("%s/%s", brokerUrl, subscriptionLocation))
-				.method("DELETE", null)
-				.addHeader("Fiware-Service", fiwareService)
-				.addHeader("Fiware-ServicePath", fiwareServicePath)
-				.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
-				.build();
-		try {
-			subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
-		} catch (Exception e) {
+		if (subscriptionLocation.isPresent()) {
 
+			// remove subscription from the broker
+			Request subscriptionDeletion = new Request.Builder()
+					.url(String.format("%s/%s", brokerUrl, subscriptionLocation))
+					.method("DELETE", null)
+					.addHeader("Fiware-Service", fiwareService)
+					.addHeader("Fiware-ServicePath", fiwareServicePath)
+					.addHeader("Authorization", String.format("bearer %s", optionalTokenManager.map(TokenManager::getAccessToken).map(AccessTokenResponse::getToken).orElse("noToken")))
+					.build();
+			try {
+				subDeletionResponse = Optional.of(httpClient.newCall(subscriptionDeletion).execute());
+			} catch (Exception e) {
+
+			}
 		}
 
 		URL ql = new URL(quantumLeapUrl);
@@ -403,9 +406,9 @@ public class StepDefinitions {
 		}
 		webDriver.quit();
 
-		if (entityDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				qlDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) ||
-				subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
+		if (entityDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
+				qlDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
+				subDeletionResponse.map(r -> !r.isSuccessful()).orElseGet(() -> !subscriptionLocation.isPresent())) {
 			fail(String.format("Cleanup was not successfull: Entity: %s - QL: %s - Subscription: %s",
 					entityDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
 					qlDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
