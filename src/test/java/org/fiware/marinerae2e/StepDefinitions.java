@@ -356,7 +356,7 @@ public class StepDefinitions {
 
 			// remove subscription from the broker
 			Request subscriptionDeletion = new Request.Builder()
-					.url(String.format("%s/%s", brokerUrl, subscriptionLocation))
+					.url(String.format("%s/%s", brokerUrl, subscriptionLocation.get()))
 					.method("DELETE", null)
 					.addHeader("Fiware-Service", fiwareService)
 					.addHeader("Fiware-ServicePath", fiwareServicePath)
