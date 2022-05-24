@@ -367,8 +367,6 @@ public class StepDefinitions {
 			} catch (Exception e) {
 
 			}
-		} else {
-			subDeletionResponse = Optional.of(new Response.Builder().code(204).build());
 		}
 
 		URL ql = new URL(quantumLeapUrl);
@@ -411,7 +409,8 @@ public class StepDefinitions {
 
 		if (entityDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
 				qlDeletionResponse.map(r -> !r.isSuccessful() && r.code() != 404).orElse(false) ||
-				subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false)) {
+				(subDeletionResponse.map(r -> !r.isSuccessful()).orElse(false) && subscriptionLocation.isPresent())) {
+
 			fail(String.format("Cleanup was not successfull: Entity: %s - QL: %s - Subscription: %s",
 					entityDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
 					qlDeletionResponse.map(Response::code).map(String::valueOf).orElse("No response"),
