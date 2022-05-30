@@ -51,7 +51,9 @@ The tests can be configured, using the following Enviornment-Variables:
 | KEYCLOAK_REALM                    | Realm to authenticate in.                                             | ```null```                                |
 | PEP_URL                           | Url of the broker has to be changed to the PEP-Proxy.                 | ```null```                                |
 
-Currently, two scenarios are defined:
+Currently, three scenarios are defined:
  - one running through broker-api
- - the other running through the pep-proxy
-With the "groups" parameter, the execution can be configured. If the test should be used without security, run them via ```mvn clean test -DexcludeGroups="secured"```.
+ - one running through the pep-proxy
+ - one that checks that the AQ App is correctly deployed
+
+With the "groups" parameter, the execution can be configured. The three groups are: `secured`, `unsecured` and `aqapp`. For example: if the test should be used without security, run them via ```mvn clean test -DexcludeGroups="secured"```. 
